@@ -37,3 +37,18 @@ def get_nonprofit_info(nonprofit):
     query = """SELECT * FROM <what rebecca calls our table> WHERE <nonprofit name> = %s"""
     params = nonprofit
     return get_dict_resultset(query, params)
+
+def add_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester):
+    query = """INSERT INTO <table> VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    params = (name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester)
+    cur.execute(query, params)
+
+def edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester):
+    query = """UPDATE <table> SET name=%s, media=%s, first=%s, last=%s, email=%s, linkedin=%s, fname=%s, position=%s, 
+                        last_updated=%s, status=%s, comments=%s, semester=%s, WHERE <name of nonprofit column>==nonprofit"""
+    params = (name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester)
+    cur.execute(query, params)

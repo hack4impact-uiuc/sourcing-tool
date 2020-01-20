@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import sampleData from '../sample/data.json'
 import { Button, Table, Dropdown } from 'react-bootstrap';
+import {
+  addNonprofit,
+  editNonprofit
+} from "../apiWrapper";
 
 class Main extends React.Component {
     constructor(props) {
@@ -33,7 +37,10 @@ class Main extends React.Component {
                 )
               })}
             </Dropdown.Menu>
-          </Dropdown>
+          </Dropdown> 
+          <Button onClick={addNonprofit("Navam", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j")}>
+            Add Nonprofit
+          </Button>
           <Table>
             <thead>
               <tr>
@@ -68,15 +75,12 @@ class Main extends React.Component {
                   <td>{row['Status']}</td>
                   <td>{row['Comments']}</td>
                   <td>{row['Semester']}</td>
-                  <td><Button>Edit</Button></td>
+                  <td><Button onclick={editNonprofit("Kiva", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j")}>Edit</Button></td>
                 </tr>
               )
             })}
           </tbody>
           </Table>
-          <Button>
-            ADD NEW
-          </Button>
         </div>
       );
     }

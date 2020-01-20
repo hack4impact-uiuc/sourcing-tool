@@ -2,6 +2,8 @@ from flask import Flask, make_response
 from flask import render_template, jsonify, request
 from flask_cors import CORS
 import queries as psql
+from flask import request, json
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -60,6 +62,28 @@ def get_semester_info(semester):
 @app.route('/nonprofit_info', methods=['GET'])
 def get_nonprofit_info(nonprofit_name):
     res = psql.get_nonprofit_info(nonprofit_name)
+    else:
+        return create_response({}, 404, "Not Found")
+    if res:
+        return create_response(res, 200, "OK")
+    return create_response({}, 404, "Not Found")
+
+@app.route('/add', methods=['POST'])
+def add_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester):
+    res = psql.add_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester)
+    else:
+        return create_response({}, 404, "Not Found")
+    if res:
+        return create_response(res, 200, "OK")
+    return create_response({}, 404, "Not Found")
+
+@app.route('/edit/<nonprofit_name>', methods=['PUT'])
+def edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester):
+    res = psql.edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
+                 status, comments, semester)
     else:
         return create_response({}, 404, "Not Found")
     if res:
