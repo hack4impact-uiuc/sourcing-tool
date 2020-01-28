@@ -45,6 +45,11 @@ def add_nonprofit(name, media, first, last, email, linkedin, fname, position, la
                  status, comments, semester)
     cur.execute(query, params)
 
+def new_sem(name, prev_sem):
+    query = """INSERT INTO <table> (semester, name, media, first, last, email, linkedin, fname, position, last_updated, status, comments) SELECT %s, name, media, first, last, email, linkedin, fname, position, last_updated, status, comments FROM <table> WHERE <semester> = %s"""
+    params = (name, prev_sem)
+    cur.execute(query, params)
+
 def edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
                  status, comments, semester):
     query = """UPDATE <table> SET name=%s, media=%s, first=%s, last=%s, email=%s, linkedin=%s, fname=%s, position=%s, 

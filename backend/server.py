@@ -68,6 +68,8 @@ def get_nonprofit_info(nonprofit_name):
         return create_response(res, 200, "OK")
     return create_response({}, 404, "Not Found")
 
+######################################################################################################
+
 @app.route('/add', methods=['POST'])
 def add_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
                  status, comments, semester):
@@ -78,6 +80,17 @@ def add_nonprofit(name, media, first, last, email, linkedin, fname, position, la
     if res:
         return create_response(res, 200, "OK")
     return create_response({}, 404, "Not Found")
+
+@app.route('/new_sem', methods=['POST'])
+def new_sem(name, prev_sem):
+    res = psql.new_sem(name, prev_sem)
+    else:
+        return create_response({}, 404, "Not Found")
+    if res:
+        return create_response(res, 200, "OK")
+    return create_response({}, 404, "Not Found")
+
+######################################################################################################
 
 @app.route('/edit/<nonprofit_name>', methods=['PUT'])
 def edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
