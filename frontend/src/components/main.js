@@ -5,32 +5,46 @@ import sampleData from '../sample/data.json'
 import { Button, Table, Dropdown, Modal } from 'react-bootstrap';
 import {
   addNonprofit,
-  editNonprofit
+  editNonprofit,
+  newSemester,
+  deleteNonprofit,
+  semesterData,
+  semesterList,
+  nonprofitInfo
 } from "../apiWrapper";
 
 class Main extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {currentSemester: 'Spring 2019', semesterList: ["Spring 2019", "Fall 2018"], data: [], addModal: false, editModal: false, anyModal: false,
-      addValues: {Nonprofit:"", FirstName: "", LastName: "", EmailAddress: "", Linkedin: "", Position: "", LastUpdate: "", Status: "", Comments: ""},
-      editValues: {Nonprofit:"", FirstName: "", LastName: "", EmailAddress: "", Linkedin: "", Position: "", LastUpdate: "", Status: "", Comments: ""}}
+      this.state = {currentSemester: 'Spring 2020', semesterList: ["Spring 2019", "Fall 2018"], data: [], addModal: false, editModal: false, semModal: false, anyModal: false, edit_nonprofit_prev_name: "", newSemName: "",
+      addValues: {Nonprofit:"", Media: "", FirstName: "", LastName: "", EmailAddress: "", Linkedin: "", Position: "", LastUpdate: "", Status: "", Comments: ""},
+      editValues: {Nonprofit:"", Media: "", FirstName: "", LastName: "", EmailAddress: "", Linkedin: "", Position: "", LastUpdate: "", Status: "", Comments: ""}}
     }
 
     setAll = (obj, val) => Object.keys(obj).forEach(k => obj[k] = val);
 
-    componentDidMount() {
-      this.setState({data: sampleData})
+    async componentDidMount() {
+      let semList = await semesterList();
+      let semData = await semesterData(semList['data']['result']['result'][0]['semester'])
+      console.log(semList, semData)
+      this.setState({data: semData['data']['result']['result'], semesterList:semList['data']['result']['result'], currentSemester: semList['data']['result']['result'][0]['semester']})
+    }
+
+    async selectSemester(selected) {
+      let semData = await semesterData(selected)
+      this.setState({currentSemester: selected, data: semData['data']['result']['result']})
     }
 
     addModalToggle = () => {
       var addValues = {...this.state.addValues}
       this.setAll(addValues, "")
       this.setState({ addModal: !this.state.addModal, anyModal: !this.state.anyModal, addValues });
-      console.log(this.state.addModal)
     }
 
-    handleAddSubmit(e) {
-      console.log(this.state.addValues)
+    async handleAddSubmit(e) {
+      await addNonprofit(this.state.addValues.Nonprofit, this.state.addValues.Media, this.state.addValues.FirstName, this.state.addValues.LastName, this.state.addValues.EmailAddress, this.state.addValues.Linkedin, this.state.addValues.FirstName, this.state.addValues.Position, this.state.addValues.LastUpdate, this.state.addValues.Status, this.state.addValues.Comments, this.state.currentSemester)
+      let semData = await semesterData(this.state.currentSemester)
+      this.setState({data: semData['data']['result']['result']})
       this.addModalToggle();
     }
 
@@ -46,6 +60,27 @@ class Main extends React.Component {
         addValues
       });
     }
+
+
+    semModalToggle = () => {
+      this.setState({ semModal: !this.state.semModal, anyModal: !this.state.anyModal, newSemName: "" });
+    }
+
+    async handleSemSubmit(e) {
+      await newSemester(this.state.newSemName, this.state.currentSemester)
+      let semList = await semesterList();
+      this.setState({semesterList:semList['data']['result']['result']})
+      this.semModalToggle();
+    }
+
+    handleSemChange(e) {
+      const target = e.target;
+      const value = target.value;
+  
+      this.setState({
+        newSemName: value
+      });
+    }
   
     editModalToggle = (Nonprofit, FirstName, LastName, EmailAddress, Linkedin, Position, LastUpdate, Status, Comments) => {
       var editValues = {...this.state.editValues}
@@ -59,12 +94,14 @@ class Main extends React.Component {
       editValues["Status"] = Status
       editValues["Comments"] = Comments
 
-      this.setState({ editModal: !this.state.editModal, anyModal: !this.state.anyModal, editValues });
-      console.log(this.state.editValues)
+      this.setState({ editModal: !this.state.editModal, anyModal: !this.state.anyModal, editValues, edit_nonprofit_prev_name: Nonprofit });
     }
 
-    handleEditSubmit(e) {
-      console.log(this.state.editValues)
+    async handleEditSubmit(e) {
+      console.log(this.state.addValues)
+      await editNonprofit(this.state.editValues.Nonprofit, this.state.editValues.Media, this.state.editValues.FirstName, this.state.editValues.LastName, this.state.editValues.EmailAddress, this.state.editValues.Linkedin, this.state.editValues.FirstName, this.state.editValues.Position, this.state.editValues.LastUpdate, this.state.editValues.Status, this.state.editValues.Comments, this.state.currentSemester, this.state.edit_nonprofit_prev_name)
+      let semData = await semesterData(this.state.currentSemester)
+      this.setState({data: semData['data']['result']['result']})
       this.editModalToggle();
     }
 
@@ -81,6 +118,12 @@ class Main extends React.Component {
       });
     }
 
+    async deleteNonprofit(e) {
+      deleteNonprofit(e, this.state.currentSemester)
+      let semData = await semesterData(this.state.currentSemester)
+      this.setState({data: semData['data']['result']['result']})
+    }
+
     render() {
       return(
         <div>
@@ -95,15 +138,41 @@ class Main extends React.Component {
             <Dropdown.Menu>
               {this.state.semesterList.map((row) => {
                 return (
-                <Dropdown.Item onClick={() => {this.setState({currentSemester: row})}}>{row}</Dropdown.Item>
+                <Dropdown.Item onClick={() => {this.selectSemester(row['semester'])}}>{row['semester']}</Dropdown.Item>
                 )
-              })}LastName
+              })}
             </Dropdown.Menu>
           </Dropdown> 
 
           <Button onClick={this.addModalToggle}>
             Add Nonprofit
           </Button>
+
+          <Button onClick={this.semModalToggle}>
+            Add New Semester
+          </Button>
+          {this.state.semModal ? 
+            <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Title>Add New Semester</Modal.Title>
+            </Modal.Header>
+          
+            <Modal.Body>
+              <label>Enter New Semester Name:</label>
+                <input
+                  type="text"
+                  onChange={e => this.handleSemChange(e)}
+                />
+            </Modal.Body>
+          
+            <Modal.Footer>
+              <Button variant="secondary" onClick={e => this.semModalToggle(e)}>Close</Button>
+              <Button variant="primary" onClick={e => this.handleSemSubmit(e)}>Add</Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+            : null}
+
+
           {this.state.addModal ? 
             <Modal.Dialog>
             <Modal.Header>
@@ -115,6 +184,12 @@ class Main extends React.Component {
                 <input
                   type="text"
                   name="Nonprofit"
+                  onChange={e => this.handleAddChange(e)}
+                />
+                <label>Enter Media of contact:</label>
+                <input
+                  type="text"
+                  name="Media"
                   onChange={e => this.handleAddChange(e)}
                 />
                 <label>Enter FirstName of contact:</label>
@@ -186,6 +261,13 @@ class Main extends React.Component {
                   type="text"
                   name="Nonprofit"
                   value={this.state.editValues.Nonprofit}
+                  onChange={e => this.handleEditChange(e)}
+                />
+                <label>Media of contact:</label>
+                <input
+                  type="text"
+                  name="Media"
+                  value={this.state.editValues.Media}
                   onChange={e => this.handleEditChange(e)}
                 />
                 <label>FirstName of contact:</label>
@@ -272,23 +354,24 @@ class Main extends React.Component {
               </tr>
             </thead>
           <tbody>
-            {this.state.data.filter(word => word.Semester === this.state.currentSemester).map((row) =>{
+            {this.state.data.filter(word => word.semester === this.state.currentSemester).map((row) =>{
               return (
                 <tr>
-                  <td>{row['Nonprofit']}</td>
-                  <td>{row['Media']}</td>
-                  <td>{row['First Name']}</td>
-                  <td>{row['Last Name']}</td>
-                  <td>{row['Email Address']}</td>
-                  <td>{row['Linkedin']}</td>
-                  <td>{row['Linked FName']}</td>
-                  <td>{row['Position']}</td>
-                  <td>{row['Last Update']}</td>
-                  <td>{row['Status']}</td>
-                  <td>{row['Comments']}</td>
-                  <td>{row['Semester']}</td>
-                  <td><Button onClick={() => {this.editModalToggle(row['Nonprofit'],row['Media'],row['First Name'], row['Last Name'], row['Email Address'], row['Linkedin'], row['Linked FName'], 
-                    row['Position'], row['Last Update'], row['Status'], row['Comments'])}}>Edit</Button></td>
+                  <td>{row['name']}</td>
+                  <td>{row['media']}</td>
+                  <td>{row['first']}</td>
+                  <td>{row['last']}</td>
+                  <td>{row['email']}</td>
+                  <td>{row['linkedin']}</td>
+                  <td>{row['fname']}</td>
+                  <td>{row['position']}</td>
+                  <td>{row['last_updated']}</td>
+                  <td>{row['status']}</td>
+                  <td>{row['comments']}</td>
+                  <td>{row['semester']}</td>
+                  <td><Button onClick={() => {this.editModalToggle(row['name'],row['media'],row['first'], row['last'], row['email'], row['linkedin'], row['fname'], 
+                    row['position'], row['last_updated'], row['status'], row['comments'])}}>Edit</Button></td>
+                  <td><Button onClick={() => {this.deleteNonprofit(row['name'])}}>Delete</Button></td>
                 </tr>
               )
             })}

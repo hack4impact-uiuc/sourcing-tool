@@ -5,8 +5,9 @@ from bson.json_util import dumps
 import json
 import itertools
 import random
+import password
 
-conn = psycopg2.connect(dbname='postgres', user='postgres', password='alawini411', host='cs411-project.cm2xo0osnz3p.us-east-1.rds.amazonaws.com', port='5432')
+conn = psycopg2.connect(dbname='prd_sourcing_tool', user='navam', password=password.password, host='localhost', port='5432')
 conn.autocommit = True
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -24,36 +25,41 @@ def get_dict_resultset(sql, params):
     return {'result': dict_result}
 
 def get_semester_list():
-    query = """SELECT DISTINCT <What rebecca calls semesters> FROM <what rebecca calls our table>"""
+    query = """SELECT DISTINCT semester FROM nonprofits"""
     params = None
     return get_dict_resultset(query, params)
 
 def get_semester_info(semester):
-    query = """SELECT * FROM <what rebecca calls our table> WHERE <What rebecca calls semesters> = %s"""
-    params = semester
+    query = """SELECT * FROM nonprofits WHERE semester = %s"""
+    params = (semester,)
     return get_dict_resultset(query, params)
 
 def get_nonprofit_info(nonprofit):
-    query = """SELECT * FROM <what rebecca calls our table> WHERE <nonprofit name> = %s"""
-    params = nonprofit
+    query = """SELECT * FROM nonprofits WHERE name = %s"""
+    params = (nonprofit,)
     return get_dict_resultset(query, params)
 
 def add_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
                  status, comments, semester):
-    query = """INSERT INTO <table> VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    params = (name, media, first, last, email, linkedin, fname, position, last_updated,
-                 status, comments, semester)
-    cur.execute(query, params)
+    query = """INSERT INTO nonprofits VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) returning *;"""
+    params = (name, media, first, last, email, linkedin, fname, position, last_updated, status, comments, semester)
+    return get_dict_resultset(query, params)
 
-def new_sem(name, prev_sem):
-    query = """INSERT INTO <table> (semester, name, media, first, last, email, linkedin, fname, position, last_updated, status, comments) SELECT %s, name, media, first, last, email, linkedin, fname, position, last_updated, status, comments FROM <table> WHERE <semester> = %s"""
-    params = (name, prev_sem)
-    cur.execute(query, params)
+def new_sem(new_sem, prev_sem):
+    query = """INSERT INTO nonprofits (semester, name, media, first, last, email, linkedin, fname, position, last_updated, status, comments) SELECT %s, name, media, first, last, email, linkedin, fname, position, last_updated, status, comments FROM nonprofits WHERE semester = %s returning *"""
+    params = (new_sem, prev_sem)
+    return get_dict_resultset(query, params)
 
 def edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
-                 status, comments, semester):
-    query = """UPDATE <table> SET name=%s, media=%s, first=%s, last=%s, email=%s, linkedin=%s, fname=%s, position=%s, 
-                        last_updated=%s, status=%s, comments=%s, semester=%s, WHERE <name of nonprofit column>==nonprofit"""
+                 status, comments, semester, prev_name):
+    query = """UPDATE nonprofits SET name=%s, media=%s, first=%s, last=%s, email=%s, linkedin=%s, fname=%s, position=%s, 
+                        last_updated=%s, status=%s, comments=%s WHERE name=%s and semester=%s returning *"""
     params = (name, media, first, last, email, linkedin, fname, position, last_updated,
-                 status, comments, semester)
-    cur.execute(query, params)
+                 status, comments, prev_name, semester)
+    return get_dict_resultset(query, params)
+
+def delete_nonprofit(name, semester):
+    query = """DELETE FROM nonprofits where name = %s and semester = %s returning *"""
+    params = (name, semester)
+    return get_dict_resultset(query, params)
+

@@ -3,7 +3,6 @@ from flask import render_template, jsonify, request
 from flask_cors import CORS
 import queries as psql
 from flask import request, json
-import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -44,66 +43,97 @@ def home():
 @app.route('/semester_list', methods=['GET'])
 def get_semester_list():
     res = psql.get_semester_list()
-    else:
-        return create_response({}, 404, "Not Found")
     if res:
         return create_response(res, 200, "OK")
+    else:
+        return create_response({}, 404, "Not Found")
     return create_response({}, 404, "Not Found")
 
 @app.route('/semester_data', methods=['GET'])
-def get_semester_info(semester):
+def get_semester_info():
+    semester = request.args['semester']
     res = psql.get_semester_info(semester)
-    else:
-        return create_response({}, 404, "Not Found")
     if res:
         return create_response(res, 200, "OK")
+    else:
+        return create_response({}, 404, "Not Found")
     return create_response({}, 404, "Not Found")
 
 @app.route('/nonprofit_info', methods=['GET'])
-def get_nonprofit_info(nonprofit_name):
+def get_nonprofit_info():
+    nonprofit_name = request.args['nonprofit_name']
     res = psql.get_nonprofit_info(nonprofit_name)
-    else:
-        return create_response({}, 404, "Not Found")
     if res:
         return create_response(res, 200, "OK")
+    else:
+        return create_response({}, 404, "Not Found")
     return create_response({}, 404, "Not Found")
 
 ######################################################################################################
 
 @app.route('/add', methods=['POST'])
-def add_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
-                 status, comments, semester):
-    res = psql.add_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
-                 status, comments, semester)
-    else:
-        return create_response({}, 404, "Not Found")
+def add_nonprofit():
+    args = request.form
+    res = psql.add_nonprofit(args.get('name'), args.get('media'), args.get('first'), args.get('last'), args.get('email'), args.get('linkedin'), args.get('fname'), args.get('position'), args.get('last_updated'),
+                 args.get('status'), args.get('comments'), args.get('semester'))
     if res:
         return create_response(res, 200, "OK")
+    else:
+        return create_response({}, 404, "Not Found")
     return create_response({}, 404, "Not Found")
 
 @app.route('/new_sem', methods=['POST'])
-def new_sem(name, prev_sem):
-    res = psql.new_sem(name, prev_sem)
-    else:
-        return create_response({}, 404, "Not Found")
+def new_sem():
+    args = request.form
+    res = psql.new_sem(args.get('name'), args.get('prev_sem'))
     if res:
         return create_response(res, 200, "OK")
+    else:
+        return create_response({}, 404, "Not Found")
     return create_response({}, 404, "Not Found")
 
 ######################################################################################################
 
-@app.route('/edit/<nonprofit_name>', methods=['PUT'])
-def edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
-                 status, comments, semester):
-    res = psql.edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated,
-                 status, comments, semester)
-    else:
-        return create_response({}, 404, "Not Found")
+@app.route('/edit', methods=['PUT'])
+def edit_nonprofit():
+    args = request.form
+    prev_name = args.get('prev_name')
+    semester = args.get('semester')
+    name = args.get('name')
+    media = args.get('media')
+    first = args.get('first')
+    last = args.get('last')
+    email = args.get('email')
+    linkedin = args.get('linkedin')
+    fname = args.get('fname')
+    position = args.get('position')
+    last_updated = args.get('last_updated')
+    status = args.get('status')
+    comments = args.get('comments')
+
+    res = psql.edit_nonprofit(name, media, first, last, email, linkedin, fname, position, last_updated, status, comments, semester, prev_name)
     if res:
         return create_response(res, 200, "OK")
+    else:
+        return create_response({}, 404, "Not Found")
+    return create_response({}, 404, "Not Found")
+
+######################################################################################################
+
+@app.route('/delete', methods=['DELETE'])
+def delete_nonprofit():
+    args = request.form
+    semester = args.get('semester')
+    name = args.get('name')
+
+    res = psql.delete_nonprofit(name, semester)
+    if res:
+        return create_response(res, 200, "OK")
+    else:
+        return create_response({}, 404, "Not Found")
     return create_response({}, 404, "Not Found")
 
 ######################################################################################################
 
 if __name__ == '__main__':
-    app.run(debug = True, host='0.0.0.0', port=80)
+    app.run(debug = True, host='0.0.0.0', port=5000)
