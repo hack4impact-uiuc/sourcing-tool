@@ -6,8 +6,10 @@ import json
 import itertools
 import random
 import password
+import os
 
-conn = psycopg2.connect(dbname='prd_sourcing_tool', user='navam', password=password.password, host='localhost', port='5432')
+DATABASE_URL = os.environ['DATABASE_URL']
+conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 conn.autocommit = True
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
