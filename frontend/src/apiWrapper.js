@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/";
+const BASE_URL = "https://rocky-scrubland-28747.herokuapp.com/";
 
 export const addNonprofit = async (name, media, first, last, email, linkedin, fname, position, last_updated,
     status, comments, semester) => {

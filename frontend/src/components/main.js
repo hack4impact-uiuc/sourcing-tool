@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import sampleData from '../sample/data.json'
 import { Button, Table, Dropdown, Modal } from 'react-bootstrap';
 import {
   addNonprofit,

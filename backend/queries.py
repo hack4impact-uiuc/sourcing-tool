@@ -1,11 +1,9 @@
 import psycopg2
 import psycopg2.extras
 from psycopg2.extensions import AsIs
-from bson.json_util import dumps
 import json
 import itertools
 import random
-import password
 import os
 
 DATABASE_URL = os.environ['DATABASE_URL']
